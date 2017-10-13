@@ -8,7 +8,12 @@ require 'recipe/laravel.php';
 set('application', '$APPLICATION_NAME$');
 
 // Project repository
-set('repository', '$GIT_REPO$');
+set('repository', '$GIT$');
+
+// Folder names in releases.
+set('release_name', function () {
+    return date('YmdHis') . '_' . exec('git show -s --format=%h');
+});
 
 // Shared files/dirs between deploys
 add('shared_files', []);
@@ -24,6 +29,9 @@ set('branch', 'master');
 // Set multiplexing.
 set('ssh_multiplexing', false);
 
+// Set amount of releases to keep.
+set('keep_releases', 5);
+
 // Dev environment host.
 host('$HOST$')
     ->stage('dev')
@@ -31,25 +39,10 @@ host('$HOST$')
     ->identityFile('~/.ssh/$PRIVATE_KEY$')
     ->forwardAgent(true)
     ->port(22)
+    ->set('env', [
+        //Env variables.
+    ])
     ->set('deploy_path', '~/{{application}}/dev');
-
-// Staging environment host.
-host('$HOST$')
-    ->stage('staging')
-    ->user('$USER$')
-    ->identityFile('~/.ssh/$PRIVATE_KEY$')
-    ->forwardAgent(true)
-    ->port(22)
-    ->set('deploy_path', '~/{{application}}/staging');
-
-// Live environment host.
-host('$HOST$')
-    ->stage('live')
-    ->user('$USER$')
-    ->identityFile('~/.ssh/$PRIVATE_KEY$')
-    ->forwardAgent(true)
-    ->port(22)
-    ->set('deploy_path', '~/{{application}}/live');
 
 // Custom Tasks.
 task('build', function () {
@@ -67,13 +60,14 @@ task('deploy', [
     'deploy:shared',
     'deploy:vendors',
     'deploy:writable',
-    'artisan:storage:link',
+    //'artisan:storage:link',
     'artisan:view:clear',
     'artisan:cache:clear',
     'artisan:config:cache',
     'artisan:route:cache',
     'artisan:optimize',
     'artisan:migrate',
+    'artisan:db:seed:production',
     'deploy:symlink',
     'deploy:unlock',
     'cleanup',
@@ -82,3 +76,8 @@ task('deploy', [
 // If deployment fails automatically unlock.
 after('deploy:failed', 'deploy:unlock');
 
+// Custom tasks
+desc('Run the production seeders');
+task('artisan:db:seed:production', function () {
+    run('{{bin/php}} {{release_path}}/artisan db:seed --class=ProductionDatabaseSeeder');
+});
