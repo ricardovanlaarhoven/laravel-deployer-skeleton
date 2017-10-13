@@ -6,7 +6,7 @@ Import the `deploy.php` file into your repository.
 
 Replace the following values:
 - `$APPLICATION_NAME$` The name of the application, used as a folder name on the server.
-- `$GIT_REPO$` The Git repository that holds the project.
+- `$GIT$` The Git repository that holds the project.
 > Make sure to have a read only access key for the git repository!
 - `$HOST$` The server ip.
 - `$USER$` The user that we use to authenticate to the server.
