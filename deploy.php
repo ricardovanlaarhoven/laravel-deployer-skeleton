@@ -73,6 +73,29 @@ task('deploy', [
     'cleanup',
 ]);
 
+
+desc('Refresh the project');
+task('refresh:project', [
+    'deploy:info',
+    'deploy:prepare',
+    'deploy:lock',
+    'deploy:release',
+    'deploy:update_code',
+    'deploy:shared',
+    'deploy:vendors',
+    'deploy:writable',
+    'artisan:view:clear',
+    'artisan:cache:clear',
+    'artisan:config:cache',
+    'artisan:optimize',
+    'storage:clear',
+    'artisan:migrate:fresh',
+    'artisan:db:seed:production',
+    'deploy:symlink',
+    'deploy:unlock',
+    'cleanup',
+]);
+
 // If deployment fails automatically unlock.
 after('deploy:failed', 'deploy:unlock');
 
